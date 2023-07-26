@@ -56,7 +56,7 @@ Upload the following files in a directory under the document root of your websit
   
 Set up cron to run *get-ahps-levels.php* like:
 ```
-*/10 * 1 * * * cd $HOME/public_html/placefiles;php -q get-ahps-levels.php > ahps-status.txt 2>&1
+*/15 * 1 * * * cd $HOME/public_html/placefiles;php -q get-ahps-levels.php > ahps-status.txt 2>&1
 ```
 be sure to change the public_html/placefiles to the directory where you installed the scripts.
 
