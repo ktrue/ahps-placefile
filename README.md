@@ -1,4 +1,4 @@
-# metar-placefile
+# ahps-placefile
 ## GRLevelX placefile generator for AHPS data from NOAA-AHPS stream gauge levels
 
 ## Purpose:
@@ -77,7 +77,7 @@ Title: AHPS Observations - Wed, 26 Jul 2023 13:34:06 +0000
 Refresh: 7
 Color: 255 255 255
 Font: 1, 12, 1, Arial
-IconFile: 1, 20, 20, 10, 10, "ahps-icons-sm.png"
+IconFile: 1, 20, 20, 10, 10, "ahps-icons2-sm.png"
 Threshold: 999
 
 ; generate AROC1 Pajaro River at Chittenden at 36.900231,-121.597722 at 24 miles SE 
@@ -93,7 +93,9 @@ Icon: 0,0,000,1,5,"ID: ARRC1 Arroyo Seco (Monterey) at Greenfield(CA)\n   (36.23
 End:
 
 ```
+## Sample Display on GRLevel3
 
+![sample-output](https://github.com/ktrue/ahps-placefile/assets/17507343/dc3cd3aa-1398-4c0b-b70b-ed074dc8f95d)
 
 ## Acknowledgements
 
