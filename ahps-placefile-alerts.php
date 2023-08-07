@@ -141,7 +141,7 @@ Title: '.$title.' - '.gmdate('r').'
 Refresh: 7
 Color: 255 255 255
 Font: 1, 12, 1, Arial
-IconFile: 1, 20, 20, 10, 10, "ahps-icons-sm.png"
+IconFile: 1, 20, 20, 10, 10, "ahps-icons2-sm.png"
 Threshold: 999
 
 ';
