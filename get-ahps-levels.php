@@ -16,6 +16,7 @@ ini_set('display_errors','1');
 */
 #----------------------------------------------------------------------------
 // Version 1.00 - 24-Jul-2023 - Initial Release
+// Version 1.01 - 29-Mar-2024 - update for new NWC mapservice URL
 // -------------Settings ---------------------------------
   $cacheFileDir = './';      // default cache file directory
   $ourTZ = 'America/Los_Angeles';
@@ -23,8 +24,13 @@ ini_set('display_errors','1');
 // -------------End Settings -----------------------------
 //
 
-$GMLversion = 'get-ahps-levels.php V1.00 - 24-Jul-2023';
-$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=pjson'; // new location 15-June-2016
+$GMLversion = 'get-ahps-levels.php V1.01 - 29-Mar-2024';
+//$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=pjson'; // new location 15-June-2016
+
+// March 27, 2024 new URL
+// https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/riv_gauges/MapServer
+$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=pjson'; // new location 15-June-2016
+
 
 $geos = array( # do overlapping queries to get around 10000 returns limit on mapserver
 'CONUS-East' => '&geometry=%7Bxmin%3A+-96.67%2C+ymin%3A+19.20%2C+xmax%3A+-66.89%2C+ymax%3A+49.39%7D',
@@ -59,6 +65,7 @@ if (isset($_REQUEST['sce']) && strtolower($_REQUEST['sce']) == 'view' ) {
 	date_default_timezone_set("$ourTZ");
 #	$Status .= "<!-- using date_default_timezone_set(\"$ourTZ\") -->\n";
 }
+header('Content-type: text/plain,charset=ISO-8859-1');
 
 global $Debug;
 
@@ -131,9 +138,9 @@ if(strlen($rawHTML) < 2000 ){
 	$Debug .= "<!-- Oops.. insufficient data returned from $NOAA_URL\n - aborting. -->\n";
 	$Debug = preg_replace('|<!--|is','',$Debug);
 	$Debug = preg_replace('|-->|is','',$Debug);
-	print "<pre>\n";
+	# print "<pre>\n";
 	print $Debug;
-	print "</pre>\n";
+	# print "</pre>\n";
 	exit;
 }
 #----------------------------------------------------------------------------
@@ -260,9 +267,9 @@ $Debug .= "\n<!-- ..finished processing -->\n";
 
 $Debug = preg_replace('|<!--|is','',$Debug);
 $Debug = preg_replace('|-->|is','',$Debug);
-print "<pre>\n";
+#print "<pre>\n";
 print $Debug;
-print "</pre>\n";
+#print "</pre>\n";
 
 #----------------------------------------------------------------------------
 
