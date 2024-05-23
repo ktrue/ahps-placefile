@@ -17,6 +17,7 @@ ini_set('display_errors','1');
 #----------------------------------------------------------------------------
 // Version 1.00 - 24-Jul-2023 - Initial Release
 // Version 1.01 - 29-Mar-2024 - update for new NWC mapservice URL
+// Version 1.02 - 23-May-2024 - added checks for complete downloads from mapserver
 // -------------Settings ---------------------------------
   $cacheFileDir = './';      // default cache file directory
   $ourTZ = 'America/Los_Angeles';
@@ -87,7 +88,10 @@ foreach ($geos as $geoname => $geoquery) {
 	$Debug .= "<!-- AHPS returned ".strlen($rawHTML)." bytes -->\n";
 	
 	file_put_contents(str_replace('.txt',$geoname.'.txt',$NOAAcacheName),$rawHTML);
-	
+	if(strlen($rawHTML) < 5000) {
+		$Debug .= "<!-- $geoname query returns only ".strlen($rawHTML)." bytes. -- skipping.\n";
+		continue;
+	}
 	$tJSON = json_decode($rawHTML,true);
 	if (strlen($rawHTML > 500) and function_exists('json_last_error')) { // report status, php >= 5.3.0 only
 		switch (json_last_error()) {
@@ -130,11 +134,11 @@ foreach ($geos as $geoname => $geoquery) {
   $JSON['features'] = array_merge($JSON['features'],$tJSON['features']);
 }
 
-$rivers = $JSON['features'];
+$rivers = isset($JSON['features'])?$JSON['features']:array();
 
 $Debug .= "<!-- .. ".count($rivers)." total entries returned for processing -->\n";
 
-if(strlen($rawHTML) < 2000 ){
+if(count($rivers) < 8000 ){
 	$Debug .= "<!-- Oops.. insufficient data returned from $NOAA_URL\n - aborting. -->\n";
 	$Debug = preg_replace('|<!--|is','',$Debug);
 	$Debug = preg_replace('|-->|is','',$Debug);
