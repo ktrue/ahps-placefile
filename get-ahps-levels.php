@@ -25,7 +25,7 @@ ini_set('display_errors','1');
 // -------------End Settings -----------------------------
 //
 
-$GMLversion = 'get-ahps-levels.php V1.01 - 29-Mar-2024';
+$GMLversion = 'get-ahps-levels.php V1.02 - 23-May-2024';
 //$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=pjson'; // new location 15-June-2016
 
 // March 27, 2024 new URL
