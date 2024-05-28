@@ -18,6 +18,7 @@ ini_set('display_errors','1');
 // Version 1.00 - 24-Jul-2023 - Initial Release
 // Version 1.01 - 29-Mar-2024 - update for new NWC mapservice URL
 // Version 1.02 - 23-May-2024 - added checks for complete downloads from mapserver
+// Version 1.03 - 28-May-2024 - added retries when connect timeout happens
 // -------------Settings ---------------------------------
   $cacheFileDir = './';      // default cache file directory
   $ourTZ = 'America/Los_Angeles';
@@ -25,7 +26,7 @@ ini_set('display_errors','1');
 // -------------End Settings -----------------------------
 //
 
-$GMLversion = 'get-ahps-levels.php V1.02 - 23-May-2024';
+$GMLversion = 'get-ahps-levels.php V1.03 - 28-May-2024';
 //$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=pjson'; // new location 15-June-2016
 
 // March 27, 2024 new URL
@@ -40,6 +41,9 @@ $geos = array( # do overlapping queries to get around 10000 returns limit on map
 //
 $NOAAcacheName = $cacheFileDir."ahps-json.txt";
 $outputFile    = 'ahps-levels-inc.php';
+// Set maximum number of seconds (can have floating-point) to wait for feed before displaying page without feed
+$numberOfSeconds=15;   
+$retries = 3; // number of retries to get data.
 // ---------- end of settings -----------------------
 
 if (isset($_REQUEST['sce']) && strtolower($_REQUEST['sce']) == 'view' ) {
@@ -82,10 +86,16 @@ $JSON = array('features' => array());
 #----------------------------------------------------------------------------
 
 foreach ($geos as $geoname => $geoquery) {
-		
-	$rawHTML = GML_fetchUrlWithoutHanging($NOAA_URL.$geoquery);
+	$gotit = false;
+	for ($i=0;$i<$retries;$i++) {
+	  $rawHTML = GML_fetchUrlWithoutHanging($NOAA_URL.$geoquery);
 	
-	$Debug .= "<!-- AHPS returned ".strlen($rawHTML)." bytes -->\n";
+	  $Debug .= "<!-- AHPS returned ".strlen($rawHTML)." bytes -->\n";
+		if(strlen($rawHTML) > 100000) { break; }
+		$thisTry = $i+1;
+		$Debug .= "<!-- retrying. Try $thisTry of $retries failed to get contents. -->\n";
+		sleep(2);
+	}
 	
 	file_put_contents(str_replace('.txt',$geoname.'.txt',$NOAAcacheName),$rawHTML);
 	if(strlen($rawHTML) < 5000) {
@@ -282,12 +292,10 @@ print $Debug;
 // get contents from one URL and return as string 
  function GML_fetchUrlWithoutHanging($url,$useFopen=false) {
 // get contents from one URL and return as string 
-  global $Debug, $needCookie;
+  global $Debug, $needCookie,$numberOfSeconds;
   
   $overall_start = time();
   if (! $useFopen) {
-   // Set maximum number of seconds (can have floating-point) to wait for feed before displaying page without feed
-   $numberOfSeconds=30;   
 
 // Thanks to Curly from ricksturf.com for the cURL fetch functions
 
