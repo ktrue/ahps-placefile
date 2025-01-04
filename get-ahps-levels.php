@@ -19,6 +19,7 @@ ini_set('display_errors','1');
 // Version 1.01 - 29-Mar-2024 - update for new NWC mapservice URL
 // Version 1.02 - 23-May-2024 - added checks for complete downloads from mapserver
 // Version 1.03 - 28-May-2024 - added retries when connect timeout happens
+// Version 1.04 - 04-Jan-2025 - added debugging features for fetch issues
 // -------------Settings ---------------------------------
   $cacheFileDir = './';      // default cache file directory
   $ourTZ = 'America/Los_Angeles';
@@ -26,12 +27,12 @@ ini_set('display_errors','1');
 // -------------End Settings -----------------------------
 //
 
-$GMLversion = 'get-ahps-levels.php V1.03 - 28-May-2024';
+$GMLversion = 'get-ahps-levels.php V1.04 - 04-Jan-2025';
 //$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=pjson'; // new location 15-June-2016
 
 // March 27, 2024 new URL
 // https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/riv_gauges/MapServer
-$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=pjson'; // new location 15-June-2016
+$NOAA_URL = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/riv_gauges/MapServer/0/query?&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&f=json'; // new location 15-June-2016
 
 
 $geos = array( # do overlapping queries to get around 10000 returns limit on mapserver
@@ -43,7 +44,7 @@ $NOAAcacheName = $cacheFileDir."ahps-json.txt";
 $outputFile    = 'ahps-levels-inc.php';
 // Set maximum number of seconds (can have floating-point) to wait for feed before displaying page without feed
 $numberOfSeconds=15;   
-$retries = 3; // number of retries to get data.
+$retries = 2; // number of retries to get data.
 // ---------- end of settings -----------------------
 
 if (isset($_REQUEST['sce']) && strtolower($_REQUEST['sce']) == 'view' ) {
@@ -94,7 +95,7 @@ foreach ($geos as $geoname => $geoquery) {
 		if(strlen($rawHTML) > 100000) { break; }
 		$thisTry = $i+1;
 		$Debug .= "<!-- retrying. Try $thisTry of $retries failed to get contents. -->\n";
-		sleep(2);
+		sleep(15);
 	}
 	
 	file_put_contents(str_replace('.txt',$geoname.'.txt',$NOAAcacheName),$rawHTML);
@@ -302,16 +303,17 @@ print $Debug;
   $data = '';
   $domain = parse_url($url,PHP_URL_HOST);
   $theURL = str_replace('nocache','?'.$overall_start,$url);        // add cache-buster to URL if needed
+  $Debug .= "<!-- ".date('r')." -->\n";
   $Debug .= "<!-- curl fetching '$theURL' -->\n";
   $ch = curl_init();                                           // initialize a cURL session
   curl_setopt($ch, CURLOPT_URL, $theURL);                         // connect to provided URL
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);                 // don't verify peer certificate
   curl_setopt($ch, CURLOPT_USERAGENT, 
-    'Mozilla/5.0 (get-tgftp-metar.php - saratoga-weather.org)');
+    'Mozilla/5.0 (get-ahps-levels.php - saratoga-weather.org)');
 
   curl_setopt($ch,CURLOPT_HTTPHEADER,                          // request LD-JSON format
      array (
-         "Accept: text/html,text/plain"
+         "Accept: text/html,text/plain,application/json"
      ));
 
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $numberOfSeconds);  //  connection timeout
@@ -398,7 +400,13 @@ Array
 #  $content = (string)array_pop($stuff); // last one is the content
 #  $headers = (string)array_pop($stuff); // next-to-last-one is the headers
   if($cinfo['http_code'] <> '200') {
-    $Debug .= "<!-- headers returned:\n".$headers."\n -->\n"; 
+    $Debug .= "<!-- oops.. RC=".$cinfo['http_code']. " -->\n";
+    if(isset($headers)) {
+      $Debug .= "<!-- headers returned:\n".$headers."\n -->\n"; 
+      } else {
+      $Debug .= "<!-- no headers returned -->\n";
+    }
+    $Debug .= "<!-- Data returned \n$data\n -->\n";
   }
   return $data;                                                 // return headers+contents
 
